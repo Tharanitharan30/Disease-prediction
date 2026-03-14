@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medical AI Diagnosis Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #060810;
+      --panel: #0c111f;
+      --panel-soft: #121a2d;
+      --accent: #00d4aa;
+      --accent-2: #7c6aff;
+      --danger: #ff4d6d;
+      --warn: #ffbe0b;
+      --text: #e5ecff;
+      --muted: #93a1c9;
+      --line: rgba(130, 152, 210, 0.28);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      color: var(--text);
+      font-family: "Syne", sans-serif;
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(rgba(124, 106, 255, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124, 106, 255, 0.08) 1px, transparent 1px),
+        radial-gradient(circle at 10% 10%, rgba(0, 212, 170, 0.12), transparent 28%),
+        radial-gradient(circle at 90% 12%, rgba(124, 106, 255, 0.16), transparent 30%);
+      background-size: 32px 32px, 32px 32px, auto, auto;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      backdrop-filter: blur(12px);
+      background: rgba(6, 8, 16, 0.72);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .header-inner {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .logo {
+      display: inline-flex;
+      gap: 10px;
+      align-items: center;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .logo-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 14px rgba(0, 212, 170, 0.8);
+    }
+
+    .badge {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(124, 106, 255, 0.4);
+      color: #d8d1ff;
+      background: rgba(124, 106, 255, 0.2);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .app {
+      max-width: 1320px;
+      margin: 18px auto;
+      padding: 0 18px 28px;
+      display: grid;
+      gap: 16px;
+      grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+      align-items: start;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(18, 26, 45, 0.95), rgba(12, 17, 31, 0.96));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+    }
+
+    .left-pane {
+      padding: 14px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tab-btn {
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: rgba(124, 106, 255, 0.08);
+      border-radius: 10px;
+      padding: 8px 11px;
+      font-family: inherit;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all .2s ease;
+    }
+
+    .tab-btn.active {
+      color: #062018;
+      border-color: rgba(0, 212, 170, 0.55);
+      background: var(--accent);
+    }
+
+    .section {
+      display: none;
+      gap: 12px;
+    }
+
+    .section.active {
+      display: grid;
+    }
+
+    .subhead {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .field-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      color: #adbbe0;
+      font-size: 12px;
+      letter-spacing: 0.02em;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(6, 8, 16, 0.72);
+      color: var(--text);
+      padding: 10px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: rgba(0, 212, 170, 0.7);
+      box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.16);
+    }
+
+    .drop-zone {
+      border: 1px dashed rgba(0, 212, 170, 0.55);
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+      background: rgba(0, 212, 170, 0.07);
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+
+    .drop-zone.drag {
+      background: rgba(0, 212, 170, 0.16);
+      transform: translateY(-1px);
+    }
+
+    .preview {
+      display: none;
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      width: 100%;
+      max-height: 210px;
+      object-fit: contain;
+      background: #020408;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 1px solid rgba(0, 212, 170, 0.6);
+      color: #042218;
+      background: var(--accent);
+      border-radius: 10px;
+      font-family: inherit;
+      font-weight: 800;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: transform .2s ease, filter .2s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+    .btn.alt { background: transparent; color: var(--text); }
+
+    .history-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .history-item {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      background: rgba(6, 8, 16, 0.62);
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .dot.low { background: var(--accent); }
+    .dot.medium { background: var(--warn); }
+    .dot.high { background: var(--danger); }
+
+    .right-pane {
+      position: sticky;
+      top: 84px;
+      display: grid;
+      gap: 14px;
+      align-self: start;
+    }
+
+    .log-wrap {
+      overflow: hidden;
+      padding: 12px;
+    }
+
+    .log-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .status {
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .status.running { color: #032216; background: rgba(0, 212, 170, 0.88); border-color: rgba(0, 212, 170, 0.88); }
+    .status.complete { color: #052518; background: rgba(0, 212, 170, 1); border-color: rgba(0, 212, 170, 1); }
+    .status.error { color: #3e0011; background: rgba(255, 77, 109, 0.95); border-color: rgba(255, 77, 109, 0.95); }
+
+    .terminal {
+      background: #020408;
+      border: 1px solid rgba(130, 152, 210, 0.24);
+      border-radius: 12px;
+      padding: 10px;
+      min-height: 330px;
+      max-height: 420px;
+      overflow-y: auto;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .log-line {
+      opacity: 0;
+      transform: translateY(8px);
+      animation: fadeUp .36s ease forwards;
+      white-space: pre-wrap;
+      margin: 0 0 6px;
+    }
+
+    .line-info { color: #a8b3d7; }
+    .line-success { color: var(--accent); }
+    .line-error { color: var(--danger); }
+    .line-warn { color: var(--warn); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .result {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .result-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .risk-badge {
+      border-radius: 999px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .risk-low { background: rgba(0, 212, 170, 0.14); color: var(--accent); }
+    .risk-medium { background: rgba(255, 190, 11, 0.18); color: var(--warn); }
+    .risk-high { background: rgba(255, 77, 109, 0.2); color: var(--danger); }
+
+    .bar {
+      display: grid;
+      gap: 4px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+    }
+
+    .track {
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .fill {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 1s cubic-bezier(.34,1.56,.64,1);
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+    }
+
+    .meta-cell {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .muted {
+      color: var(--muted);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+    }
+
+    @media (max-width: 1120px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+      .right-pane {
+        position: static;
+      }
+      .field-grid {
+        grid-template-columns: 1fr;
+      }
+      .meta-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo"><span class="logo-dot"></span>Medical AI Diagnosis Platform</div>
+      <div class="badge">META-MODEL v2.0</div>
+    </div>
+  </header>
+
+  <main class="app">
+    <section class="card left-pane">
+      <div class="tabs" id="tabs"></div>
+
+      <section id="tab-brain" class="section active">
+        <h2 class="subhead">Brain Tumor</h2>
+        <div id="dropZone" class="drop-zone">
+          Drag and drop MRI image here or click to upload
+          <input id="brainFile" type="file" accept="image/*" hidden>
+        </div>
+        <img id="brainPreview" class="preview" alt="MRI preview">
+        <div class="action-row">
+          <button class="btn" id="brainPredictBtn">Run Brain Diagnosis</button>
+        </div>
+      </section>
+
+      <section id="tab-kidney" class="section">
+        <h2 class="subhead">Kidney</h2>
+        <div id="kidneyFields" class="field-grid"></div>
+        <div class="action-row">
+          <button class="btn" id="kidneyPredictBtn">Run Kidney Diagnosis</button>
+        </div>
+      </section>
+
+      <section id="tab-liver" class="section">
+        <h2 class="subhead">Liver</h2>
+        <div class="field-grid">
+          <div class="field"><label>Age</label><input id="l_age" type="number" value="45"></div>
+          <div class="field"><label>Gender</label>
+            <select id="l_gender">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </div>
+          <div class="field"><label>Total Bilirubin</label><input id="l_tb" type="number" step="0.01" value="1.2"></div>
+          <div class="field"><label>Direct Bilirubin</label><input id="l_db" type="number" step="0.01" value="0.3"></div>
+          <div class="field"><label>Alkaline Phosphotase</label><input id="l_ap" type="number" step="0.01" value="210"></div>
+          <div class="field"><label>Alamine Aminotransferase</label><input id="l_alt" type="number" step="0.01" value="35"></div>
+          <div class="field"><label>Aspartate Aminotransferase</label><input id="l_ast" type="number" step="0.01" value="42"></div>
+          <div class="field"><label>Total Proteins</label><input id="l_tp" type="number" step="0.01" value="6.5"></div>
+          <div class="field"><label>Albumin</label><input id="l_alb" type="number" step="0.01" value="3.4"></div>
+          <div class="field"><label>Albumin/Globulin Ratio</label><input id="l_ag" type="number" step="0.01" value="1.0"></div>
+        </div>
+        <div class="action-row">
+          <button class="btn" id="liverPredictBtn">Run Liver Diagnosis</button>
+        </div>
+      </section>
+
+      <section id="tab-health" class="section">
+        <h2 class="subhead">Health</h2>
+        <div class="field full">
+          <label>Feature Vector (comma-separated)</label>
+          <textarea id="healthInput" rows="4">0.2,1.3,0.4,2.1,0.7,1.1</textarea>
+        </div>
+        <div class="action-row">
+          <button class="btn" id="healthPredictBtn">Run Health Diagnosis</button>
+        </div>
+      </section>
+
+      <section id="tab-history" class="section">
+        <h2 class="subhead">History (Session)</h2>
+        <ul id="historyList" class="history-list"></ul>
+        <p id="historyEmpty" class="muted">No predictions in this session yet.</p>
+      </section>
+    </section>
+
+    <aside class="right-pane">
+      <section class="card log-wrap">
+        <div class="log-head">
+          <h3 style="margin:0">Execution Log</h3>
+          <span id="statusBadge" class="status">IDLE</span>
+        </div>
+        <div id="terminal" class="terminal"></div>
+      </section>
+
+      <section class="card result">
+        <div class="result-head">
+          <h3 style="margin:0">Result</h3>
+          <span id="riskBadge" class="risk-badge risk-low">Low</span>
+        </div>
+
+        <div class="bar">
+          <div id="confidenceText">Confidence: 0.0%</div>
+          <div class="track"><div id="confidenceFill" class="fill"></div></div>
+        </div>
+
+        <div id="breakdownBars"></div>
+
+        <div class="meta-grid">
+          <div class="meta-cell"><strong>Organ</strong><div id="metaOrgan" class="muted">-</div></div>
+          <div class="meta-cell"><strong>Model</strong><div id="metaModel" class="muted">-</div></div>
+          <div class="meta-cell"><strong>Prediction</strong><div id="metaPrediction" class="muted">-</div></div>
+          <div class="meta-cell"><strong>Saved</strong><div id="metaSaved" class="muted">-</div></div>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <script>
+    const DJANGO_URL = "http://localhost:8000/api";
+
+    const tabOrder = [
+      ["brain", "Brain Tumor"],
+      ["kidney", "Kidney"],
+      ["liver", "Liver"],
+      ["health", "Health"],
+      ["history", "History"],
+    ];
+
+    const state = {
+      activeTab: "brain",
+      sessionHistory: [],
+      brainFile: null,
+    };
+
+    const terminalEl = document.getElementById("terminal");
+    const statusBadge = document.getElementById("statusBadge");
+
+    function setStatus(status) {
+      statusBadge.className = "status";
+      if (status === "RUNNING") statusBadge.classList.add("running");
+      if (status === "COMPLETE") statusBadge.classList.add("complete");
+      if (status === "ERROR") statusBadge.classList.add("error");
+      statusBadge.textContent = status;
+    }
+
+    function logLine(prefix, text, tone = "info") {
+      const line = document.createElement("p");
+      line.className = `log-line line-${tone}`;
+      line.textContent = `${prefix} ${text}`;
+      line.style.animationDelay = `${Math.max(0, terminalEl.children.length) * 300}ms`;
+      terminalEl.appendChild(line);
+      terminalEl.scrollTop = terminalEl.scrollHeight;
+    }
+
+    function clearLog() {
+      terminalEl.innerHTML = "";
+    }
+
+    function parseFloatSafe(v, fallback = 0) {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : fallback;
+    }
+
+    function clamp(n, min, max) {
+      return Math.max(min, Math.min(max, n));
+    }
+
+    function renderTabs() {
+      const container = document.getElementById("tabs");
+      container.innerHTML = "";
+      for (const [key, label] of tabOrder) {
+        const btn = document.createElement("button");
+        btn.className = `tab-btn${state.activeTab === key ? " active" : ""}`;
+        btn.textContent = label;
+        btn.onclick = () => activateTab(key);
+        container.appendChild(btn);
+      }
+    }
+
+    function activateTab(tab) {
+      state.activeTab = tab;
+      renderTabs();
+      for (const [key] of tabOrder) {
+        const sec = document.getElementById(`tab-${key}`);
+        sec.classList.toggle("active", key === tab);
+      }
+      if (tab === "history") renderHistory();
+    }
+
+    function renderHistory() {
+      const list = document.getElementById("historyList");
+      const empty = document.getElementById("historyEmpty");
+      list.innerHTML = "";
+      if (!state.sessionHistory.length) {
+        empty.style.display = "block";
+        return;
+      }
+      empty.style.display = "none";
+      for (const item of state.sessionHistory.slice().reverse()) {
+        const li = document.createElement("li");
+        li.className = "history-item";
+        const risk = (item.risk_level || "Low").toLowerCase();
+        li.innerHTML = `
+          <span class="dot ${risk.includes("high") ? "high" : risk.includes("medium") ? "medium" : "low"}"></span>
+          <span>${item.organ} • ${item.prediction}</span>
+          <span>${parseFloatSafe(item.confidence).toFixed(1)}%</span>
+        `;
+        list.appendChild(li);
+      }
+    }
+
+    function updateResult(payload) {
+      document.getElementById("metaOrgan").textContent = payload.organ || "-";
+      document.getElementById("metaModel").textContent = payload.model || "-";
+      document.getElementById("metaPrediction").textContent = payload.prediction || "-";
+      document.getElementById("metaSaved").textContent = payload.saved_at || "session";
+
+      const confidence = clamp(parseFloatSafe(payload.confidence), 0, 100);
+      document.getElementById("confidenceText").textContent = `Confidence: ${confidence.toFixed(1)}%`;
+      requestAnimationFrame(() => {
+        document.getElementById("confidenceFill").style.width = `${confidence}%`;
+      });
+
+      const risk = payload.risk_level || "Low";
+      const riskBadge = document.getElementById("riskBadge");
+      riskBadge.textContent = risk;
+      riskBadge.className = "risk-badge " +
+        (risk === "High" ? "risk-high" : risk === "Medium" ? "risk-medium" : "risk-low");
+
+      const barsWrap = document.getElementById("breakdownBars");
+      barsWrap.innerHTML = "";
+
+      const breakdown = payload.breakdown || {};
+      const flat = {};
+      if (breakdown.confidences) {
+        Object.assign(flat, breakdown.confidences);
+      }
+      for (const [k, v] of Object.entries(breakdown)) {
+        if (typeof v === "number") flat[k] = v;
+      }
+
+      for (const [modelName, score] of Object.entries(flat)) {
+        const pct = clamp(parseFloatSafe(score), 0, 100);
+        const block = document.createElement("div");
+        block.className = "bar";
+        block.innerHTML = `
+          <div>${modelName}: ${pct.toFixed(1)}%</div>
+          <div class="track"><div class="fill" style="width:0"></div></div>
+        `;
+        barsWrap.appendChild(block);
+        requestAnimationFrame(() => {
+          block.querySelector(".fill").style.width = `${pct}%`;
+        });
+      }
+    }
+
+    function simulateFallback(organ) {
+      const base = {
+        Brain: {
+          model: "Brain CNN Ensemble",
+          prediction: "Tumor Detected",
+          confidence: 91.2,
+          risk_level: "High",
+          breakdown: {
+            "brain_tumor_model.h5": 89.7,
+            "brain_tumor.h5": 92.8,
+            ensemble: 91.2,
+          },
+        },
+        Kidney: {
+          model: "Kidney Disease Classifier",
+          prediction: "Kidney Disease Detected",
+          confidence: 72.1,
+          risk_level: "Medium",
+          breakdown: { "kidney_model.pkl": 72.1 },
+        },
+        Liver: {
+          model: "Liver Ensemble (LGBM + RF + XGB)",
+          prediction: "Hepatitis_C",
+          confidence: 78.4,
+          risk_level: "High",
+          breakdown: {
+            confidences: {
+              "liver_lgbm_model.joblib": 77.6,
+              "liver_rf_model.joblib": 80.1,
+              "liver_xgb_model.joblib": 77.5,
+            },
+            ensemble: 78.4,
+          },
+        },
+        Health: {
+          model: "General Health Classifier",
+          prediction: "Health Risk Detected",
+          confidence: 58.5,
+          risk_level: "Medium",
+          breakdown: { "health_prediction_model.pkl": 58.5 },
+        },
+      };
+      return { organ, ...base[organ], saved_at: "demo-fallback" };
+    }
+
+    async function postJSON(endpoint, body, organLabel) {
+      clearLog();
+      setStatus("RUNNING");
+      logLine("›", `Calling ${endpoint}`, "info");
+
+      try {
+        const resp = await fetch(`${DJANGO_URL}${endpoint}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        const txt = await resp.text();
+        const data = txt ? JSON.parse(txt) : {};
+
+        if (!resp.ok) {
+          throw new Error(data.detail || `HTTP ${resp.status}`);
+        }
+
+        logLine("✓", `Received prediction: ${data.prediction}`, "success");
+        updateResult(data);
+        state.sessionHistory.push(data);
+        setStatus("COMPLETE");
+      } catch (err) {
+        logLine("!", "Backend unreachable, running demo fallback mode", "warn");
+        const demo = simulateFallback(organLabel);
+        updateResult(demo);
+        state.sessionHistory.push(demo);
+        setStatus("ERROR");
+      }
+    }
+
+    async function postFile(endpoint, file) {
+      clearLog();
+      setStatus("RUNNING");
+      const kb = (file.size / 1024).toFixed(1);
+      logLine("›", `File selected: ${file.name} (${kb} KB)`, "info");
+      logLine("›", "Preprocessing image to shape (1, 224, 224, 3)", "info");
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const resp = await fetch(`${DJANGO_URL}${endpoint}`, {
+          method: "POST",
+          body: formData,
+        });
+        const txt = await resp.text();
+        const data = txt ? JSON.parse(txt) : {};
+        if (!resp.ok) {
+          throw new Error(data.detail || `HTTP ${resp.status}`);
+        }
+
+        const breakdown = data.breakdown || {};
+        Object.entries(breakdown).forEach(([k, v]) => {
+          if (typeof v === "number") {
+            logLine("›", `${k} inference: ${parseFloatSafe(v).toFixed(1)}%`, "info");
+          }
+        });
+        logLine("✓", `Ensemble average: ${parseFloatSafe(data.confidence).toFixed(1)}%`, "success");
+
+        updateResult(data);
+        state.sessionHistory.push(data);
+        setStatus("COMPLETE");
+      } catch (err) {
+        logLine("✗", String(err.message || err), "error");
+        logLine("!", "Backend unreachable, using demo fallback", "warn");
+        const demo = simulateFallback("Brain");
+        updateResult(demo);
+        state.sessionHistory.push(demo);
+        setStatus("ERROR");
+      }
+    }
+
+    function initKidneyForm() {
+      const labels = [
+        "Age","BloodPressure","SpecificGravity","Albumin","Sugar","RBC","PC","PCC","BA","BGR","BU","SC",
+        "Sodium","Potassium","Hemoglobin","PackedCellVolume","WBC","RBCCount","Hypertension","DiabetesMellitus",
+        "CoronaryArteryDisease","Appetite","PedalEdema","Anemia"
+      ];
+      const defaults = [
+        48,80,1.02,1,0,1,1,0,0,121,36,1.2,
+        135,4.5,15,44,7800,5.2,0,0,
+        0,1,0,0
+      ];
+
+      const wrap = document.getElementById("kidneyFields");
+      for (let i = 0; i < labels.length; i++) {
+        const field = document.createElement("div");
+        field.className = "field";
+        field.innerHTML = `<label>${labels[i]}</label><input id="k_${i}" type="number" step="0.01" value="${defaults[i]}">`;
+        wrap.appendChild(field);
+      }
+    }
+
+    function collectKidneyFeatures() {
+      const arr = [];
+      for (let i = 0; i < 24; i++) {
+        arr.push(parseFloatSafe(document.getElementById(`k_${i}`).value));
+      }
+      return arr;
+    }
+
+    function initBrainUpload() {
+      const zone = document.getElementById("dropZone");
+      const input = document.getElementById("brainFile");
+      const preview = document.getElementById("brainPreview");
+
+      function setFile(file) {
+        state.brainFile = file;
+        const url = URL.createObjectURL(file);
+        preview.src = url;
+        preview.style.display = "block";
+        logLine("›", `Filename captured: ${file.name}`, "info");
+      }
+
+      zone.addEventListener("click", () => input.click());
+      input.addEventListener("change", (e) => {
+        const f = e.target.files[0];
+        if (f) setFile(f);
+      });
+
+      zone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        zone.classList.add("drag");
+      });
+      zone.addEventListener("dragleave", () => zone.classList.remove("drag"));
+      zone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        zone.classList.remove("drag");
+        const f = e.dataTransfer.files[0];
+        if (f) setFile(f);
+      });
+    }
+
+    function bindActions() {
+      document.getElementById("brainPredictBtn").onclick = async () => {
+        if (!state.brainFile) {
+          clearLog();
+          setStatus("ERROR");
+          logLine("✗", "Please upload brain MRI image first", "error");
+          return;
+        }
+        await postFile("/predict/brain/", state.brainFile);
+      };
+
+      document.getElementById("kidneyPredictBtn").onclick = async () => {
+        const features = collectKidneyFeatures();
+        clearLog();
+        logLine("›", "Preparing kidney feature vector of length 24", "info");
+        logLine("›", "Model 1 inference: running kidney_model.pkl", "info");
+        await postJSON("/predict/kidney/", { features }, "Kidney");
+      };
+
+      document.getElementById("liverPredictBtn").onclick = async () => {
+        const body = {
+          age: parseFloatSafe(document.getElementById("l_age").value),
+          gender: document.getElementById("l_gender").value,
+          total_bilirubin: parseFloatSafe(document.getElementById("l_tb").value),
+          direct_bilirubin: parseFloatSafe(document.getElementById("l_db").value),
+          alkaline_phosphotase: parseFloatSafe(document.getElementById("l_ap").value),
+          alamine_aminotransferase: parseFloatSafe(document.getElementById("l_alt").value),
+          aspartate_aminotransferase: parseFloatSafe(document.getElementById("l_ast").value),
+          total_proteins: parseFloatSafe(document.getElementById("l_tp").value),
+          albumin: parseFloatSafe(document.getElementById("l_alb").value),
+          albumin_and_globulin_ratio: parseFloatSafe(document.getElementById("l_ag").value),
+        };
+
+        clearLog();
+        setStatus("RUNNING");
+        logLine("›", "Scaler transform: liver_scaler.joblib", "info");
+        logLine("›", "Model 1 inference: liver_lgbm_model.joblib", "info");
+        logLine("›", "Model 2 inference: liver_rf_model.joblib", "info");
+        logLine("›", "Model 3 inference: liver_xgb_model.joblib", "info");
+        await postJSON("/predict/liver/", body, "Liver");
+      };
+
+      document.getElementById("healthPredictBtn").onclick = async () => {
+        const raw = document.getElementById("healthInput").value;
+        const features = raw.split(",").map((x) => parseFloatSafe(x.trim())).filter((x) => Number.isFinite(x));
+
+        clearLog();
+        logLine("›", `Parsed feature vector length: ${features.length}`, "info");
+        logLine("›", "Model 1 inference: health_prediction_model.pkl", "info");
+        await postJSON("/predict/health/", { features }, "Health");
+      };
+    }
+
+    function init() {
+      renderTabs();
+      activateTab("brain");
+      initKidneyForm();
+      initBrainUpload();
+      bindActions();
+      setStatus("IDLE");
+      logLine("›", "Platform ready. Select tab and run inference.", "info");
+    }
+
+    init();
+  </script>
+</body>
+</html>

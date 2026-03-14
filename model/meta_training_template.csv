@@ -1,0 +1,5 @@
+brain_tumor_prob,liver_rf_prob,liver_xgb_prob,liver_lgbm_prob,health_model_prob,kidney_model_prob,target
+0.91,0.12,0.10,0.11,0.20,0.17,1
+0.08,0.22,0.18,0.20,0.30,0.26,0
+0.74,0.15,0.14,0.16,0.21,0.19,1
+0.13,0.09,0.11,0.10,0.07,0.06,0
